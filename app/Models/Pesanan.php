@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Pesanan extends Model
 {
     use HasFactory;
-
+    
     protected $casts = [
         'status' => StatusPesanan::class,
         'metode_pembayaran' => MetodePembayaran::class,

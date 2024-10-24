@@ -5,12 +5,12 @@ created:
     - database/factories/PesananFactory.php
     - database/factories/DetailPesananFactory.php
     - database/factories/PenyesuaianStokFactory.php
-    - database/migrations/2024_10_24_010715_create_kategoris_table.php
-    - database/migrations/2024_10_24_010716_create_pelanggans_table.php
-    - database/migrations/2024_10_24_010717_create_produks_table.php
-    - database/migrations/2024_10_24_010718_create_pesanans_table.php
-    - database/migrations/2024_10_24_010719_create_detail_pesanans_table.php
-    - database/migrations/2024_10_24_010720_create_penyesuaian_stoks_table.php
+    - database/migrations/2024_10_24_024659_create_kategoris_table.php
+    - database/migrations/2024_10_24_024700_create_pelanggans_table.php
+    - database/migrations/2024_10_24_024701_create_produks_table.php
+    - database/migrations/2024_10_24_024702_create_pesanans_table.php
+    - database/migrations/2024_10_24_024703_create_detail_pesanans_table.php
+    - database/migrations/2024_10_24_024704_create_penyesuaian_stoks_table.php
     - app/Models/Kategori.php
     - app/Models/Pelanggan.php
     - app/Models/Produk.php

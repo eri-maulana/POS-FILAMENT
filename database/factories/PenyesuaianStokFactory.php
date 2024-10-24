@@ -21,10 +21,22 @@ class PenyesuaianStokFactory extends Factory
      */
     public function definition(): array
     {
+        $produkId = Produk::query()->inRandomOrder()->value('id');
+        $kuantitas_disesuikan = $this->faker->numberBetween(-50, 50);
+    
         return [
-            'produk_id' => Produk::factory(),
-            'kuantitas_disesuaikan' => $this->faker->numberBetween(-10000, 10000),
-            'alasan' => $this->faker->text(),
+            'produk_id' => $produkId,
+            'kuantitas_disesuaikan' => $kuantitas_disesuikan,
+            'alasan' => $this->faker->sentence,
         ];
+    }
+    
+    public function configure(): PenyesuaianStokFactory
+    {
+        return $this->afterCreating(function (PenyesuaianStok $penyesuaian) {
+            $produk = $penyesuaian->produk;
+            $produk->stock_quantity += $penyesuaian->kuantitas_disesuaikan;
+            $produk->save();
+        });
     }
 }

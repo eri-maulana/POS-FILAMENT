@@ -22,14 +22,13 @@ class ProdukFactory extends Factory
     public function definition(): array
     {
         return [
-            'kategori_id' => Kategori::factory(),
-            'gambar' => $this->faker->word(),
-            'nama' => $this->faker->word(),
-            'sku' => $this->faker->word(),
-            'deskripsi' => $this->faker->text(),
-            'jumlah_stok' => $this->faker->numberBetween(-10000, 10000),
-            'harga' => $this->faker->numberBetween(-10000, 10000),
-            'harga_modal' => $this->faker->numberBetween(-10000, 10000),
+            'kategori_id' => rand(1, 10),
+            'nama' => $this->faker->sentence(),
+            'sku' => $this->faker->unique()->bothify('SKU########'),
+            'deskripsi' => $this->faker->paragraph(true),
+            'jumlah_stok' => 1000,
+            'harga_modal' => $harga_modal = $this->faker->numberBetween(10000, 100000),
+            'harga' => $harga_modal + ($harga_modal * (20 / 100)),
         ];
     }
 }
