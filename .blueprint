@@ -1,0 +1,27 @@
+created:
+    - database/factories/KategoriFactory.php
+    - database/factories/PelangganFactory.php
+    - database/factories/ProdukFactory.php
+    - database/factories/PesananFactory.php
+    - database/factories/DetailPesananFactory.php
+    - database/factories/PenyesuaianStokFactory.php
+    - database/migrations/2024_10_24_010715_create_kategoris_table.php
+    - database/migrations/2024_10_24_010716_create_pelanggans_table.php
+    - database/migrations/2024_10_24_010717_create_produks_table.php
+    - database/migrations/2024_10_24_010718_create_pesanans_table.php
+    - database/migrations/2024_10_24_010719_create_detail_pesanans_table.php
+    - database/migrations/2024_10_24_010720_create_penyesuaian_stoks_table.php
+    - app/Models/Kategori.php
+    - app/Models/Pelanggan.php
+    - app/Models/Produk.php
+    - app/Models/Pesanan.php
+    - app/Models/DetailPesanan.php
+    - app/Models/PenyesuaianStok.php
+models:
+    User: {  }
+    Kategori: { nama: string, relationships: { hasMany: Produk } }
+    Pelanggan: { nama: string, email: 'string unique', nomor_telepon: 'string nullable', alamat: 'text nullable', relationships: { hasMany: Pesanan } }
+    Produk: { kategori_id: 'foreign nullable', gambar: 'string nullable', nama: string, sku: 'string unique', deskripsi: text, jumlah_stok: integer, harga: integer, harga_modal: integer, relationships: { hasMany: PenyesuaianStok } }
+    Pesanan: { user_id: foreign, pelanggan_id: 'foreign nullable', nomor_pesanan: 'string unique', nama_pesanan: 'string nullable', diskon: 'integer nullable', total: integer, keuntungan: 'integer nullable', metode_pembayaran: string, status: 'string nullable', relationships: { hasMany: DetailPesanan } }
+    DetailPesanan: { pesanan_id: foreign, produk_id: foreign, kuantitas: integer, harga: integer, subtotal: integer }
+    PenyesuaianStok: { produk_id: foreign, kuantitas_disesuaikan: integer, alasan: text }
