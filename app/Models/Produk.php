@@ -11,32 +11,6 @@ class Produk extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'kategori_id',
-        'gambar',
-        'nama',
-        'sku',
-        'deskripsi',
-        'jumlah_stok',
-        'harga',
-        'harga_modal',
-    ];
-
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'id' => 'integer',
-        'kategori_id' => 'integer',
-    ];
-
     public function penyesuaianStoks(): HasMany
     {
         return $this->hasMany(PenyesuaianStok::class);
