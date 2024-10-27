@@ -2,13 +2,15 @@
 
 namespace App\Enums;
 
-enum StatusPesanan: string
+use Filament\Support\Contracts\HasLabel;
+
+enum StatusPesanan: string implements HasLabel
 {
     case TERTUNDA = 'tertunda';
     case SELESAI = 'selesai';
     case DIBATALKAN = 'dibatalkan';
 
-    public function label(): ?string
+    public function getLabel(): ?string
     {
         return str($this->value)->title();
     }

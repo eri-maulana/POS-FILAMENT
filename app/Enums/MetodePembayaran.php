@@ -2,12 +2,14 @@
 
 namespace App\Enums;
 
-enum MetodePembayaran: string
+use Filament\Support\Contracts\HasLabel;
+
+enum MetodePembayaran: string implements HasLabel
 {
     case TUNAI = 'tunai';
     case BANK_TRANFER = 'bank_transfer';
 
-    public function label(): ?string
+    public function getLabel(): ?string
     {
         return str(
             str($this->value)->replace('_', ' ')
