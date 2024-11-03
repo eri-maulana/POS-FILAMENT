@@ -17,6 +17,8 @@ class PenyesuaianStokResource extends Resource
 {
     protected static ?string $model = PenyesuaianStok::class;
 
+    protected static ?string $navigationLabel = 'Penyesuaian Stok';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

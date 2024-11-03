@@ -2,20 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\PesananResource\Pages;
-use App\Filament\Resources\PesananResource\RelationManagers;
-use App\Models\Pesanan;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Pesanan;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use App\Enums\StatusPesanan;
+use App\Enums\MetodePembayaran;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\PesananResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\PesananResource\RelationManagers;
 
 class PesananResource extends Resource
 {
     protected static ?string $model = Pesanan::class;
+
+    protected static ?string $navigationLabel = 'Pesanan';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -23,28 +31,37 @@ class PesananResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
-                Forms\Components\Select::make('pelanggan_id')
-                    ->relationship('pelanggan', 'id'),
-                Forms\Components\TextInput::make('nomor_pesanan')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('nama_pesanan')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('diskon')
-                    ->numeric(),
-                Forms\Components\TextInput::make('total')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('keuntungan')
-                    ->numeric(),
-                Forms\Components\TextInput::make('metode_pembayaran')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('status')
-                    ->maxLength(255),
+                Section::make('Informasi Pesanan')->schema([
+                    TextInput::make('nomor_pesanan')
+                        ->required()
+                        ->default(generateSequentialNumber(Pesanan::class))
+                        ->readOnly(),
+                    TextInput::make('nama_pesanan')
+                        ->maxLength(255)
+                        ->placeholder('Tulis Nama Pesanan'),
+                    TextInput::make('total')
+                        ->readOnlyOn('create')
+                        ->default(0)
+                        ->numeric(),
+                    Select::make('pelanggan_id')
+                        ->relationship('pelanggan', 'nama')
+                        ->searchable()
+                        ->preload()
+                        ->label('Pelanggan (optional)')
+                        ->placeholder('Pilih Pelanggan'),
+                    Group::make([
+                        Select::make('metode_pembayaran')
+                            ->enum(MetodePembayaran::class)
+                            ->options(MetodePembayaran::class)
+                            ->default(MetodePembayaran::TUNAI)
+                            ->required(),
+                        Select::make('status')
+                            ->required()
+                            ->enum(StatusPesanan::class)
+                            ->options(StatusPesanan::class)
+                            ->default(StatusPesanan::TERTUNDA),
+                    ])->columnSpan(2)->columns(2),
+                ])->columns(2),
             ]);
     }
 
@@ -110,6 +127,7 @@ class PesananResource extends Resource
             'index' => Pages\ListPesanans::route('/'),
             'create' => Pages\CreatePesanan::route('/create'),
             'edit' => Pages\EditPesanan::route('/{record}/edit'),
+            'buat-transaksi' => Pages\BuatTransaksi::route('{record}'),
         ];
     }
 }

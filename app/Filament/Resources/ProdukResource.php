@@ -17,10 +17,12 @@ class ProdukResource extends Resource
 {
     protected static ?string $model = Produk::class;
 
+    protected static ?string $navigationLabel = 'Produk';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    {
+{
         return $form
             ->schema([
                 Forms\Components\Select::make('kategori_id')

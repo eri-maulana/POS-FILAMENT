@@ -17,6 +17,8 @@ class PelangganResource extends Resource
 {
     protected static ?string $model = Pelanggan::class;
 
+    protected static ?string $navigationLabel = 'Pelanggan';
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

@@ -18,6 +18,32 @@ class Pesanan extends Model
         'metode_pembayaran' => MetodePembayaran::class,
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function(self $pesanan){
+            $pesanan->user_id = auth()->id();
+            $pesanan->total = 0;
+        });
+
+        static::saving(function($pesanan){
+            if($pesanan->isDirty('total')){
+                $pesanan->loadMissing('detailPesanans.produk');
+
+                $perhitunganKeuntungan = $pesanan->detailPesanans->reduce(function($carry, $detail){
+                    $produkKeuntunan = ($detail->harga - $detail->produk->harga_modal) * $detail->kuantitas;
+                    return $carry   + $produkKeuntunan;
+                }, 0);
+                
+                $pesanan->attributes['keuntungan'] = $perhitunganKeuntungan;
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'nomor_pesanan';
+    }
+
     public function detailPesanans(): HasMany
     {
         return $this->hasMany(DetailPesanan::class);
