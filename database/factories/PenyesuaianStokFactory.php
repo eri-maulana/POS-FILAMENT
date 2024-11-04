@@ -22,7 +22,7 @@ class PenyesuaianStokFactory extends Factory
     public function definition(): array
     {
         $produkId = Produk::query()->inRandomOrder()->value('id');
-        $kuantitas_disesuikan = $this->faker->numberBetween(-50, 50);
+        $kuantitas_disesuikan = $this->faker->numberBetween(0, 50);
     
         return [
             'produk_id' => $produkId,
@@ -35,7 +35,7 @@ class PenyesuaianStokFactory extends Factory
     {
         return $this->afterCreating(function (PenyesuaianStok $penyesuaian) {
             $produk = $penyesuaian->produk;
-            $produk->stock_quantity += $penyesuaian->kuantitas_disesuaikan;
+            $produk->jumlah_stok += $penyesuaian->kuantitas_disesuaikan;
             $produk->save();
         });
     }

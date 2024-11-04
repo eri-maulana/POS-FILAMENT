@@ -15,7 +15,7 @@ return new class extends Migration
 
         Schema::create('penyesuaian_stoks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('produk_id')->constrained();
+            $table->foreignId('produk_id')->constrained()->references('id')->on('produks')->onDelete('cascade')->onUpdate('cascade');
             $table->integer('kuantitas_disesuaikan');
             $table->text('alasan');
             $table->timestamps();

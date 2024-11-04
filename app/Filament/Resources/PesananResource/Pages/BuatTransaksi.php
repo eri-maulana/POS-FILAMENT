@@ -75,7 +75,7 @@ class BuatTransaksi extends Page implements HasForms
     // Update order
     public function updateOrder(): void
     {
-        $subtotal = $this->record->detailPesanan->sum('subtotal');
+        $subtotal = $this->record->detailPesanans->sum('subtotal');
 
         $this->record->update([
             'diskon' => $this->diskon,

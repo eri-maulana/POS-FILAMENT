@@ -22,7 +22,7 @@ class ProdukFactory extends Factory
     public function definition(): array
     {
         return [
-            'kategori_id' => rand(1, 10),
+            'kategori_id' => rand(1, 8),
             'nama' => $this->faker->sentence(),
             'sku' => $this->faker->unique()->bothify('SKU########'),
             'deskripsi' => $this->faker->paragraph(true),

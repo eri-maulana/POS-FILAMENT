@@ -15,7 +15,7 @@ enum StatusPesanan: string implements HasLabel
         return str($this->value)->title();
     }
 
-    public function warna(): string
+    public function getColor(): string
     {
         return match ($this) {
             self::TERTUNDA => 'warning',

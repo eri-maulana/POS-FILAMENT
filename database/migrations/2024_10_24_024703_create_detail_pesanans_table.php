@@ -15,8 +15,8 @@ return new class extends Migration
 
         Schema::create('detail_pesanans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pesanan_id')->constrained();
-            $table->foreignId('produk_id')->constrained();
+            $table->foreignId('pesanan_id')->constrained()->references('id')->on('pesanans')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('produk_id')->constrained()->references('id')->on('produks')->onDelete('cascade')->onUpdate('cascade');
             $table->integer('kuantitas');
             $table->integer('harga');
             $table->integer('subtotal');

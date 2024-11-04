@@ -10,14 +10,20 @@ use Filament\Tables\Table;
 use App\Enums\StatusPesanan;
 use App\Enums\MetodePembayaran;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Columns\Summarizers\Sum;
 use App\Filament\Resources\PesananResource\Pages;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\PesananResource\RelationManagers;
+use Exception;
 
 class PesananResource extends Resource
 {
@@ -68,44 +74,41 @@ class PesananResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('pelanggan.id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('nomor_pesanan')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('nama_pesanan')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('diskon')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('total')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('keuntungan')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('metode_pembayaran')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
+            ->defaultSort('created_at', 'desc')
+            ->columns(self::getTableColumns())
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->options(StatusPesanan::class),
+                SelectFilter::make('metode_pembayaran')
+                    ->multiple()
+                    ->options(MetodePembayaran::class),
+                Filter::make('created_at')
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->maxDate(fn (Forms\Get $get) => $get('end_date') ?: now())
+                            ->native(false),
+                        DatePicker::make('created_until')
+                            ->native(false)
+                            ->maxDate(now()),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
+                Action::make('ubah-transaksi')
+                    ->label('Edit Transaksi')
+                    ->icon('heroicon-o-pencil')
+                    ->url(fn($record) => "/pesanans/{record->nomor_pesanan}"),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -129,5 +132,57 @@ class PesananResource extends Resource
             'edit' => Pages\EditPesanan::route('/{record}/edit'),
             'buat-transaksi' => Pages\BuatTransaksi::route('{record}'),
         ];
+    }
+
+    public static function getTableColumns(): array
+    {
+        return [
+            TextColumn::make('nomor_pesanan')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('nama_pesanan')
+                    ->searchable(),
+                TextColumn::make('diskon')
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('total')
+                    ->numeric()
+                    ->alignEnd()
+                    ->sortable()
+                    ->summarize(
+                        Sum::make('total')
+                            ->money('IDR'),
+                    ),
+                TextColumn::make('keuntungan')
+                    ->numeric()
+                    ->alignEnd()
+                    ->sortable()
+                    ->summarize(
+                        Sum::make('total')
+                            ->money('IDR'),
+                    )
+                    ->sortable(),
+                TextColumn::make('metode_pembayaran')
+                    ->badge()
+                    ->color('gray'),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => $state->getColor()),
+                TextColumn::make('user.name')
+                    ->numeric()
+                    ->toggleable(isToggledHiddenByDefault:true),
+                TextColumn::make('pelanggan.nama')
+                    ->numeric()
+                    ->toggleable(isToggledHiddenByDefault:true),
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->formatStateUsing(fn($state) => $state->format('d M Y H:i')),
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->formatStateUsing(fn($state) => $state->format('d M Y H:i'))
+                    ->toggleable(isToggledHiddenByDefault:true),
+                ];
     }
 }

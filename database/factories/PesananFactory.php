@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
-use App\Models\Pelanggan;
+use App\Models\DetailPesanan;
+use App\Models\Produk;
 use App\Models\Pesanan;
-use App\Models\User;
+use App\Enums\MetodePembayaran;
+use App\Enums\StatusPesanan;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class PesananFactory extends Factory
 {
@@ -22,16 +23,43 @@ class PesananFactory extends Factory
      */
     public function definition(): array
     {
+        Pesanan::unsetEventDispatcher();
         return [
-            'user_id' => User::factory(),
-            'pelanggan_id' => Pelanggan::factory(),
-            'nomor_pesanan' => $this->faker->word(),
-            'nama_pesanan' => $this->faker->word(),
-            'diskon' => $this->faker->numberBetween(-10000, 10000),
-            'total' => $this->faker->numberBetween(-10000, 10000),
-            'keuntungan' => $this->faker->numberBetween(-10000, 10000),
-            'metode_pembayaran' => $this->faker->word(),
-            'status' => $this->faker->word(),
+            'user_id' => 1,
+            'pelanggan_id' => rand(1,50),
+            'nomor_pesanan' => $this->faker->unique()->bothify('ORD########'),
+            'nama_pesanan' => ucfirst($this->faker->word()),
+            'diskon' => $this->faker->numberBetween(5000, 10000),
+            'total' => 0,
+            'metode_pembayaran' => collect(MetodePembayaran::cases())->random(),
+            'status' => collect(StatusPesanan::cases())->random(),
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterMaking(function (Pesanan $pesanan){
+        })->afterCreating(function (Pesanan $pesanan){
+            $produkId = Produk::query()->inRandomOrder()->take(rand(1,5))->pluck('id');
+            $detailPesanan = $produkId->map(function($produkId) use ($pesanan){
+                $kuantitas = rand(1,10);
+                $harga = Produk::find($produkId)->harga;
+                $subtotal = $kuantitas * $harga;
+
+                return [
+                    'pesanan_id' => $pesanan->id,
+                    'produk_id' => $produkId,
+                    'kuantitas' => $kuantitas,
+                    'harga' => $harga,
+                   'subtotal' => $subtotal,
+                ];
+            });
+
+            DetailPesanan::insert($detailPesanan->toArray());
+            $total = $detailPesanan->sum('subtotal') - $pesanan->diskon;
+            $pesanan->total = $total;
+            $pesanan->keuntungan = $total * 0.1;
+            $pesanan->save();
+        });
     }
 }

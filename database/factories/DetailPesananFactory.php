@@ -25,9 +25,9 @@ class DetailPesananFactory extends Factory
         return [
             'pesanan_id' => Pesanan::factory(),
             'produk_id' => Produk::factory(),
-            'kuantitas' => $this->faker->numberBetween(-10000, 10000),
-            'harga' => $this->faker->numberBetween(-10000, 10000),
-            'subtotal' => $this->faker->numberBetween(-10000, 10000),
+            'kuantitas' => $this->faker->numberBetween(10000, 100000),
+            'harga' => $this->faker->numberBetween(10000, 100000),
+            'subtotal' => $this->faker->numberBetween(10000, 100000),
         ];
     }
 }
