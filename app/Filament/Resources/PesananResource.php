@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use Exception;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Pesanan;
@@ -9,7 +10,9 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use App\Enums\StatusPesanan;
 use App\Enums\MetodePembayaran;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Resources\Resource;
+use Filament\Actions\DeleteAction;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Group;
@@ -18,12 +21,14 @@ use Filament\Forms\Components\Section;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Actions\DeleteBulkAction;
 use App\Filament\Resources\PesananResource\Pages;
-use Exception;
 
 class PesananResource extends Resource
 {
@@ -85,7 +90,7 @@ class PesananResource extends Resource
                 Filter::make('created_at')
                     ->form([
                         DatePicker::make('created_from')
-                            ->maxDate(fn (Forms\Get $get) => $get('end_date') ?: now())
+                            ->maxDate(fn(Forms\Get $get) => $get('end_date') ?: now())
                             ->native(false),
                         DatePicker::make('created_until')
                             ->native(false)
@@ -95,24 +100,58 @@ class PesananResource extends Resource
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])
             ->actions([
-                EditAction::make(),
-                Action::make('ubah-transaksi')
-                    ->label('Edit Transaksi')
-                    ->icon('heroicon-o-pencil')
-                    ->url(fn($record) => "/pesanans/{record->nomor_pesanan}"),
+                Action::make('print')
+                    ->button()
+                    ->color('gray')
+                    ->icon('heroicon-o-printer')
+                    ->action(function (Pesanan $record) {
+                        $pdf = Pdf::loadView('pdf.print-pesanan', [
+                            'pesanan' => $record,
+                        ]);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->stream();
+                        }, 'receipt-' . $record->nomor_pesanan . '.pdf');
+                    }),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->color('gray'),
+                    Action::make('edit-transaksi')
+                        ->visible(fn(Pesanan $record) => $record->status === StatusPesanan::TERTUNDA)
+                        ->label('Edit Transaction')
+                        ->icon('heroicon-o-pencil')
+                        ->url(fn($record) => "/pesanan/{$record->nomor_pesanan}"),
+                    Action::make('tandai-telah-dibaca')
+                        ->visible(fn(Pesanan $record) => $record->status === StatusPesanan::TERTUNDA)
+                        ->requiresConfirmation()
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->action(fn(Pesanan $record) => $record->markAsComplete())
+                        ->label('Tandai telah selesai'),
+                    Action::make('divider')->label('')->disabled(),
+                    DeleteAction::make()
+                        ->before(function (Pesanan $pesanan) {
+                            $pesanan->detailPesanans()->delete();
+                            $pesanan->delete();
+                        }),
+                ])
+                    ->color('gray'),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->before(function (\Illuminate\Support\Collection $records) {
+                            $records->each(fn(Pesanan $pesanan) => $pesanan->detailPesanans()->delete());
+                        }),
                 ]),
             ]);
     }
@@ -138,51 +177,51 @@ class PesananResource extends Resource
     {
         return [
             TextColumn::make('nomor_pesanan')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('nama_pesanan')
-                    ->searchable(),
-                TextColumn::make('diskon')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('total')
-                    ->numeric()
-                    ->alignEnd()
-                    ->sortable()
-                    ->summarize(
-                        Sum::make('total')
-                            ->money('IDR'),
-                    ),
-                TextColumn::make('keuntungan')
-                    ->numeric()
-                    ->alignEnd()
-                    ->sortable()
-                    ->summarize(
-                        Sum::make('total')
-                            ->money('IDR'),
-                    )
-                    ->sortable(),
-                TextColumn::make('metode_pembayaran')
-                    ->badge()
-                    ->color('gray'),
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn ($state) => $state->getColor()),
-                TextColumn::make('user.name')
-                    ->numeric()
-                    ->toggleable(isToggledHiddenByDefault:true),
-                TextColumn::make('pelanggan.nama')
-                    ->numeric()
-                    ->toggleable(isToggledHiddenByDefault:true),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->formatStateUsing(fn($state) => $state->format('d M Y H:i')),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->formatStateUsing(fn($state) => $state->format('d M Y H:i'))
-                    ->toggleable(isToggledHiddenByDefault:true),
-                ];
+                ->searchable()
+                ->sortable(),
+            TextColumn::make('nama_pesanan')
+                ->searchable(),
+            TextColumn::make('diskon')
+                ->numeric()
+                ->sortable(),
+            TextColumn::make('total')
+                ->numeric()
+                ->alignEnd()
+                ->sortable()
+                ->summarize(
+                    Sum::make('total')
+                        ->money('IDR'),
+                ),
+            TextColumn::make('keuntungan')
+                ->numeric()
+                ->alignEnd()
+                ->sortable()
+                ->summarize(
+                    Sum::make('total')
+                        ->money('IDR'),
+                )
+                ->sortable(),
+            TextColumn::make('metode_pembayaran')
+                ->badge()
+                ->color('gray'),
+            TextColumn::make('status')
+                ->badge()
+                ->color(fn($state) => $state->getColor()),
+            TextColumn::make('user.name')
+                ->numeric()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('pelanggan.nama')
+                ->numeric()
+                ->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('created_at')
+                ->dateTime()
+                ->sortable()
+                ->formatStateUsing(fn($state) => $state->format('d M Y H:i')),
+            TextColumn::make('updated_at')
+                ->dateTime()
+                ->sortable()
+                ->formatStateUsing(fn($state) => $state->format('d M Y H:i'))
+                ->toggleable(isToggledHiddenByDefault: true),
+        ];
     }
 }
