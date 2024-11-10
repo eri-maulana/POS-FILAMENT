@@ -19,12 +19,16 @@ use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
+use App\Filament\Exports\PesananExporter;
 use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -123,6 +127,8 @@ class PesananResource extends Resource
                         }, 'receipt-' . $record->nomor_pesanan . '.pdf');
                     }),
                 ActionGroup::make([
+                    ViewAction::make()
+                        ->color('gray'),
                     EditAction::make()
                         ->color('gray'),
                     Action::make('edit-transaksi')
@@ -153,13 +159,21 @@ class PesananResource extends Resource
                             $records->each(fn(Pesanan $pesanan) => $pesanan->detailPesanans()->delete());
                         }),
                 ]),
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Ekspor Excel')
+                    ->fileDisk('public')
+                    ->color('success')
+                    ->icon('heroicon-o-document-text')
+                    ->exporter(PesananExporter::class),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\PesananResource\RelationManagers\DetailPesanansRelationManager::class
         ];
     }
 
@@ -169,6 +183,7 @@ class PesananResource extends Resource
             'index' => Pages\ListPesanans::route('/'),
             'create' => Pages\CreatePesanan::route('/create'),
             'edit' => Pages\EditPesanan::route('/{record}/edit'),
+            'view' => Pages\TampilPesanan::route('/{record}/details'),
             'buat-transaksi' => Pages\BuatTransaksi::route('{record}'),
         ];
     }
@@ -223,5 +238,18 @@ class PesananResource extends Resource
                 ->formatStateUsing(fn($state) => $state->format('d M Y H:i'))
                 ->toggleable(isToggledHiddenByDefault: true),
         ];
+    }
+
+    public static function infolist(\Filament\Infolists\Infolist $infolist): \Filament\Infolists\Infolist
+    {
+        return $infolist->schema([
+            TextEntry::make('nomor_pesanan')->color('gray'),
+            TextEntry::make('pelanggan.nama')->placeholder('-'),
+            TextEntry::make('diskon')->money('IDR')->color('gray'),
+            TextEntry::make('total')->money('IDR')->color('gray'),
+            TextEntry::make('metode_pembayaran')->badge()->color('gray'),
+            TextEntry::make('status')->badge()->color(fn($state) => $state->getColor()),
+            TextEntry::make('created_at')->dateTime()->formatStateUsing(fn($state) => $state->format('d M Y H:i'))->color('gray'),
+        ]);
     }
 }
