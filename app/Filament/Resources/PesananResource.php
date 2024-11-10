@@ -133,9 +133,9 @@ class PesananResource extends Resource
                         ->color('gray'),
                     Action::make('edit-transaksi')
                         ->visible(fn(Pesanan $record) => $record->status === StatusPesanan::TERTUNDA)
-                        ->label('Edit Transaction')
+                        ->label('Edit Transaksi')
                         ->icon('heroicon-o-pencil')
-                        ->url(fn($record) => "/pesanan/{$record->nomor_pesanan}"),
+                        ->url(fn($record) => "/pesanans/{$record->nomor_pesanan}"),
                     Action::make('tandai-telah-dibaca')
                         ->visible(fn(Pesanan $record) => $record->status === StatusPesanan::TERTUNDA)
                         ->requiresConfirmation()
