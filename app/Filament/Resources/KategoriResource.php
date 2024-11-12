@@ -12,14 +12,21 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Traits\HasNavigationBadge;
 
 class KategoriResource extends Resource
 {
+    use HasNavigationBadge;
+
     protected static ?string $model = Kategori::class;
 
     protected static ?string $navigationLabel = 'Kategori';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Stok';
+    
+    protected static ?string $navigationIcon = 'heroicon-o-hashtag';
+    
+
 
     public static function form(Form $form): Form
     {

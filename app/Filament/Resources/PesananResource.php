@@ -33,14 +33,19 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Actions\DeleteBulkAction;
 use App\Filament\Resources\PesananResource\Pages;
+use App\Traits\HasNavigationBadge;
 
 class PesananResource extends Resource
 {
+    use HasNavigationBadge;
+    
     protected static ?string $model = Pesanan::class;
 
     protected static ?string $navigationLabel = 'Pesanan';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Transaksi';
+
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
     public static function form(Form $form): Form
     {

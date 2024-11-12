@@ -12,14 +12,19 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Traits\HasNavigationBadge;
 
 class PelangganResource extends Resource
 {
+    use HasNavigationBadge;
+    
     protected static ?string $model = Pelanggan::class;
 
     protected static ?string $navigationLabel = 'Pelanggan';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = 'Transaksi';
+
+    protected static ?string $navigationIcon = 'heroicon-o-users';
 
     public static function form(Form $form): Form
     {

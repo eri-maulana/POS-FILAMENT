@@ -28,6 +28,8 @@ class AppPanelProvider extends PanelProvider
             ->id('app')
             ->path('/')
             ->login()
+            ->brandName('POS Filament')
+            // ->brandLogo(asset('image/eri.png'))
             ->colors([
                 'primary' => Color::Blue,
             ])
@@ -56,6 +58,10 @@ class AppPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->sidebarCollapsibleOnDesktop()
-            ->viteTheme('resources/css/filament/app/theme.css');
+            ->viteTheme('resources/css/filament/app/theme.css')
+            ->navigationGroups([
+                'Transaksi',
+                'Stok',
+            ]);
     }
 }

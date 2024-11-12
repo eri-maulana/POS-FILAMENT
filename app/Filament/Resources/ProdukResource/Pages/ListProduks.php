@@ -2,9 +2,10 @@
 
 namespace App\Filament\Resources\ProdukResource\Pages;
 
-use App\Filament\Resources\ProdukResource;
 use Filament\Actions;
+use App\Filament\Imports\ProdukImporter;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\ProdukResource;
 
 class ListProduks extends ListRecords
 {
@@ -14,6 +15,9 @@ class ListProduks extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+            Actions\ImportAction::make()
+                ->importer(ProdukImporter::class)
+                ->icon('heroicon-o-document-arrow-down'),
         ];
     }
 }
